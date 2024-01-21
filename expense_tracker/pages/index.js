@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import { Inter } from "next/font/google";
 import ExpenseItem from '@/Components/ExpenseItem';
-import { collection, addDoc , getDocs} from "firebase/firestore";
+import { collection, addDoc , getDocs, doc, deleteDoc} from "firebase/firestore";
 //import the database here.
 import { db } from '@/config/firebase';
 
@@ -9,6 +9,7 @@ import { db } from '@/config/firebase';
 export default function Home() {
   const [expenseData, setExpenseData] = useState([])
   const [newItem, setNewItem] = useState({name:'', price:''})
+  const [total, setTotal] = useState(0)
 
   //Todo 
   //Create, Read, Delete items from db.
@@ -32,14 +33,20 @@ export default function Home() {
       const dbData = expenseDbData.docs.map(doc => ({id:doc.id, ...doc.data() })) //converts db data from docs into an obj form.
       setExpenseData(dbData)
     }
-
     getExpenseDataFromDb()
+    calcTotalExpense()
       
-  },[])  //API caaling for fetching data from db.
+  },[expenseData])  //API caaling for fetching data from db.
 
+  const calcTotalExpense  = () => {
+    const totalExpense = expenseData.reduce((sum,items) => sum + parseFloat(items.price), 0)
+    setTotal(totalExpense)
+  }
 
-
-  const [total, setTotal] = useState(0)
+  const onClickDelete = async(id) => {
+    await deleteDoc(doc(db, "items", id))
+  }
+  
 
   return (
     <div className="h-screen  text-center flex flex-col justify-center items-center">
@@ -54,7 +61,7 @@ export default function Home() {
 
       <ul className='bg-slate-800 p-1 rounded-lg p-4 m-2 w-[250px]'>
         {expenseData.map((obj) => (
-          <ExpenseItem data={obj} key={obj.id}/>
+          <ExpenseItem data={obj} key={obj.id} deleteFunction = {onClickDelete} />
          ))
           }
       </ul>
@@ -63,7 +70,7 @@ export default function Home() {
       <div className='bg-slate-800 p-2 w-[300px] rounded-lg p-4 m-2'>
         <div className='bg-slate-950 p-1 rounded-xl flex items-center justify-around'>
         <p className=''>Total expense is:</p>
-        <span className='bg-blue-900 rounded p-2'>${total}</span>
+        <span className='bg-blue-900 rounded p-2'>{total}</span>
         </div>
       </div>
     }
