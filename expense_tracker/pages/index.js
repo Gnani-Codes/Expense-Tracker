@@ -24,7 +24,7 @@ export default function Home() {
         </form>
       </div> 
 
-      <ul className='bg-slate-800 p-1 rounded-lg p-4 m-2'>
+      <ul className='bg-slate-800 p-1 rounded-lg p-4 m-2 w-[250px]'>
         {expenseData.map((obj,id) => (
           <ExpenseItem data={obj} key={id}/>
          ))
@@ -33,9 +33,9 @@ export default function Home() {
 
     {expenseData.length > 1 &&
       <div className='bg-slate-800 p-2 w-[300px] rounded-lg p-4 m-2'>
-        <div className='bg-slate-900 p-1 rounded-xl flex items-center justify-around'>
+        <div className='bg-slate-950 p-1 rounded-xl flex items-center justify-around'>
         <p className=''>Total expense is:</p>
-        <span className='bg-slate-90'>${total}</span>
+        <span className='bg-blue-900 rounded p-2'>${total}</span>
         </div>
       </div>
     }
