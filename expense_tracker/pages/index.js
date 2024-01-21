@@ -1,15 +1,43 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import { Inter } from "next/font/google";
 import ExpenseItem from '@/Components/ExpenseItem';
+import { collection, addDoc , getDocs} from "firebase/firestore";
+//import the database here.
+import { db } from '@/config/firebase';
 
-const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const [expenseData, setExpenseData] = useState([
-    {item: 'Coffee', cost: '3'},
-    {item: 'Coffee', cost: '3'},
-    {item: 'Coffee', cost: '3'},
-  ])
+  const [expenseData, setExpenseData] = useState([])
+  const [newItem, setNewItem] = useState({name:'', price:''})
+
+  //Todo 
+  //Create, Read, Delete items from db.
+
+  const addItem = async(event) => {
+    event.preventDefault()
+
+    const docRef = await addDoc(collection(db, "items"), {
+      ...newItem
+    });
+    console.log(docRef.id,"new item id")
+
+    setNewItem({name:'', price:''})
+    
+  } //Create data 
+
+  useEffect(() => {
+
+    const getExpenseDataFromDb = async() => {
+      const expenseDbData = await getDocs(collection(db, "items")); //gets db data in docs form.
+      const dbData = expenseDbData.docs.map(doc => ({id:doc.id, ...doc.data() })) //converts db data from docs into an obj form.
+      setExpenseData(dbData)
+    }
+
+    getExpenseDataFromDb()
+      
+  },[])  //API caaling for fetching data from db.
+
+
 
   const [total, setTotal] = useState(0)
 
@@ -17,16 +45,16 @@ export default function Home() {
     <div className="h-screen  text-center flex flex-col justify-center items-center">
       <h1 className="text-4xl">Expense Tracker</h1>
       <div className="bg-slate-800 p-4 rounded-lg p-4 m-4">
-        <form className="flex grid grid-cols-3  gap-4  justify-between w-full ">
-          <input type="text" className="rounded p-1 pl-3 border text-black" placeholder="Enter Item" />
-          <input type="text" className="rounded p-1 pl-3 border text-black" placeholder="Enter Expense" />
+        <form onSubmit={addItem} className="flex grid grid-cols-3  gap-4  justify-between w-full ">
+          <input value={newItem.name} onChange={(e)=> setNewItem({...newItem, name: e.target.value})} type="text" className="rounded p-1 pl-3 border text-black" placeholder="Enter Item" />
+          <input value={newItem.price} onChange={(e)=> setNewItem({...newItem, price: e.target.value})} type="text" className="rounded p-1 pl-3 border text-black" placeholder="Enter Expense" />
           <button type="submit" className="bg-blue-900 w-[100px] rounded-lg ml-auto mr-auto">+</button>
         </form>
       </div> 
 
       <ul className='bg-slate-800 p-1 rounded-lg p-4 m-2 w-[250px]'>
-        {expenseData.map((obj,id) => (
-          <ExpenseItem data={obj} key={id}/>
+        {expenseData.map((obj) => (
+          <ExpenseItem data={obj} key={obj.id}/>
          ))
           }
       </ul>
